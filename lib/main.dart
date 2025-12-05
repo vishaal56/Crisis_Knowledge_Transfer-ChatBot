@@ -12,7 +12,7 @@ class CrisisChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Crisis Knowledge Assistan',
+      title: 'Crisis Knowledge Assistant',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'Roboto',
