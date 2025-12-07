@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'settings_page.dart';
+import 'attach_content_page.dart';
+import 'actions_hub_page.dart';
 
 void main() {
   runApp(const CrisisChatApp());
@@ -207,7 +210,34 @@ class _CrisisChatScreenState extends State<CrisisChatScreen> {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ActionsHubPage()),
+              );
+
+              // Optional: handle "New Incident" coming back from that page
+              if (result == 'new_incident') {
+                setState(() {
+                  _messages.clear();
+                  _messages.add(
+                    ChatMessage(
+                      text:
+                      'New incident started. Describe the crisis or choose a scenario.',
+                      isUser: false,
+                      timestamp: DateTime.now(),
+                    ),
+                  );
+                });
+              }
+            },
+            icon: const Icon(Icons.dashboard_customize_outlined),
+            tooltip: 'Action Center',
+          ),
+          IconButton(
+            onPressed: () {
+              // your existing settings navigation
+            },
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings',
           ),
@@ -218,6 +248,7 @@ class _CrisisChatScreenState extends State<CrisisChatScreen> {
           _buildScenarioHeader(),
           const SizedBox(height: 4),
           _buildSuggestedPromptsRow(),
+          _buildActionButtons(),
           const SizedBox(height: 4),
           _buildChatArea(),
           _buildInputArea(),
@@ -301,6 +332,97 @@ class _CrisisChatScreenState extends State<CrisisChatScreen> {
             onPressed: () => _handleSend(textOverride: prompt),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 8,
+        children: [
+          _actionBtn(
+            icon: Icons.upload_file_outlined,
+            text: 'Upload Document',
+            onTap: () {
+              // TODO: file picker + upload
+            },
+          ),
+
+          _actionBtn(
+            icon: Icons.menu_book_outlined,
+            text: 'Knowledge Base',
+            onTap: () {
+              // TODO: open modal with categories
+            },
+          ),
+
+          _actionBtn(
+            icon: Icons.description_outlined,
+            text: 'Generate Report',
+            onTap: () {
+              // TODO: compile conversation summary
+            },
+          ),
+
+          _actionBtn(
+            icon: Icons.support_agent_outlined,
+            text: 'Escalate to Expert',
+            onTap: () {
+              // TODO: forward last messages to expert
+            },
+          ),
+
+          _actionBtn(
+            icon: Icons.refresh_outlined,
+            text: 'New Incident',
+            onTap: () {
+              setState(() {
+                _messages.clear();
+                _messages.add(ChatMessage(
+                  text:
+                  'New incident started. Describe the crisis or choose a scenario.',
+                  isUser: false,
+                  timestamp: DateTime.now(),
+                ));
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionBtn({required IconData icon, required String text, required Function onTap}) {
+    return InkWell(
+      onTap: () => onTap(),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 4,
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: const Color(0xFF4F46E5)),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -423,9 +545,30 @@ class _CrisisChatScreenState extends State<CrisisChatScreen> {
         child: Row(
           children: [
             IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AttachContentPage()),
+                );
+
+                if (result != null) {
+                  setState(() {
+                    _messages.add(
+                      ChatMessage(
+                        text:
+                        "📎 Attached Content\n"
+                            "${result['file'] != null ? 'File: ${result['file'].path.split('/').last}\n' : ''}"
+                            "${result['photo'] != null ? 'Photo added\n' : ''}"
+                            "${result['notes'] != null && result['notes'] != '' ? 'Notes: ${result['notes']}' : ''}",
+                        isUser: true,
+                        timestamp: DateTime.now(),
+                      ),
+                    );
+                  });
+                }
+              },
               icon: const Icon(Icons.add_circle_outline),
-              tooltip: 'Attach context (SOP, incident log)',
+              tooltip: 'Attach context',
             ),
             Expanded(
               child: Container(
